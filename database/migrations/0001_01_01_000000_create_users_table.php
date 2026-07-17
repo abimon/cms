@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('phone');
             $table->string('wellbeing_status')->default('Healthy');
+            $table->string('avatar')->nullable();
             $table->string('role')->default('Member');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
