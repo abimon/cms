@@ -38,7 +38,7 @@ class UserController extends Controller
             'wellbeing_status' => 'required',
             'role' => 'required',
             'password' => 'required',
-            'church'=>'required|in:churches'
+            'church'=>'required'
         ]);
         if(!$validated){
             return response()->json(['message' => 'Validation failed'], 400);
