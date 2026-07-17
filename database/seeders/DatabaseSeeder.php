@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Church;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,11 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        Church::create([
+            'name'=>'JKUSDA',
+            'address'=>'62000 - 00200 Nairobi',
+            'phone'=>'0701583807',
+            'email'=>'jkusda2019@gmail.com',
+            'website'=>'www.jkusdachurch.org',
+            'location'=> '-1.0941666780987673, 37.01447530792765',
         ]);
     }
 }

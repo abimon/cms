@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Models\ChurchMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -36,6 +37,7 @@ class UserController extends Controller
             'wellbeing_status' => 'required',
             'role' => 'required',
             'password' => 'required',
+            'church_id'=>'required|in:churches,id'
         ]);
         if(!$validated){
             return response()->json(['message' => 'Validation failed'], 400);
@@ -49,6 +51,10 @@ class UserController extends Controller
                 'wellbeing_status' => request('wellbeing_status'),
                 'role' => request('role'),
                 'password' => Hash::make(request('password')),
+            ]);
+            ChurchMember::create([
+                'member_id'=>$user->id,
+                'church_id'=>request('church_id')
             ]);
             return response()->json(['message' => 'User created successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 201);
         }catch(\Exception $e){
