@@ -10,7 +10,22 @@ use Illuminate\Support\Facades\Hash;
 class UserController extends Controller
 {
     public function login(){
-
+        $validated = request()->validate([
+            'email' => 'required',
+            'password' => 'required',
+        ]);
+        if(!$validated){
+            return response()->json(['message' => 'Validation failed'], 400);
+        }
+        try{
+            $user = User::where('email', request('email'))->first();
+            if(!$user || !Hash::check(request('password'), $user->password)){
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
+            return response()->json(['message' => 'User logged in successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 200);
+        }catch(\Exception $e){
+            return response()->json(['message' => 'Error logging in user', 'error' => $e->getMessage()], 500);
+        }
     }
     public function register(){
         $validated = request()->validate([
