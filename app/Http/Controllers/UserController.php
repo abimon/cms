@@ -31,10 +31,10 @@ class UserController extends Controller
     }
     public function register(){
         $validated = request()->validate([
-            'uid' => 'required|unique:users',
+            'uid' => 'required|unique:users,uid',
             'name' => 'required',
-            'email' => 'required|unique:users',
-            'phone' => 'required|unique:users',
+            'email' => 'required|unique:users,email',
+            'phone' => 'required|unique:users,phone',
             'wellbeing_status' => 'required',
             'role' => 'required',
             'password' => 'required',
