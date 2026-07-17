@@ -15,7 +15,7 @@ class ChurchController extends Controller
     {
         $churches = Church::all();
         if(request()->is('api/*')){
-            return response()->json($churches);
+            return response()->json(['churches'=>$churches]);
         }
         return view('church.index', compact('churches'));
     }
