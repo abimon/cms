@@ -31,14 +31,14 @@ class UserController extends Controller
     }
     public function register(){
         $validated = request()->validate([
-            'uid' => 'required',
+            'uid' => 'required|unique:users',
             'name' => 'required',
-            'email' => 'required',
-            'phone' => 'required',
+            'email' => 'required|unique:users',
+            'phone' => 'required|unique:users',
             'wellbeing_status' => 'required',
             'role' => 'required',
             'password' => 'required',
-            'church_id'=>'required|in:churches,id'
+            'church'=>'required|in:churches'
         ]);
         if(!$validated){
             return response()->json(['message' => 'Validation failed'], 400);
