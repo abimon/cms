@@ -13,13 +13,6 @@ class UserController extends Controller
 
     }
     public function register(){
-        // uid
-        // name
-        // email
-        // phone
-        // wellbeing_status
-        // role
-        // password
         $validated = request()->validate([
             'uid' => 'required',
             'name' => 'required',
@@ -42,7 +35,7 @@ class UserController extends Controller
                 'role' => request('role'),
                 'password' => Hash::make(request('password')),
             ]);
-            return response()->json(['message' => 'User created successfully', 'user' => $user], 201);
+            return response()->json(['message' => 'User created successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 201);
         }catch(\Exception $e){
             return response()->json(['message' => 'Error creating user', 'error' => $e->getMessage()], 500);
         }
