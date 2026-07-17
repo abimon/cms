@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Models\Church;
 use App\Models\ChurchMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -52,9 +53,10 @@ class UserController extends Controller
                 'role' => request('role'),
                 'password' => Hash::make(request('password')),
             ]);
+            $church = Church::where('name',request('church'))->first();
             ChurchMember::create([
                 'member_id'=>$user->id,
-                'church_id'=>request('church_id')
+                'church_id'=>$church->id
             ]);
             return response()->json(['message' => 'User created successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 201);
         }catch(\Exception $e){
