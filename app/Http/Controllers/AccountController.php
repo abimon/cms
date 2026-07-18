@@ -15,14 +15,15 @@ class AccountController extends Controller
      */
     public function index()
     {
+
+        $church = Church::where('name', Auth::user()->church)->first();
         if (Auth::user()->role == 'Superadmin') {
             $accounts = Account::all();
         } else {
-            $church = Church::where('name',Auth::user()->church)->first();
             $accounts = Account::where('church_id', $church->id)->get();
         }
         if (request()->is('api/*')) {
-            return response()->json(['accounts' => $accounts]);
+            return response()->json(['accounts' => $accounts,'church_id'=>$church->id], 200);
         }
         return view('account.index', compact('accounts'));
     }
@@ -38,14 +39,15 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store()
     {
         $validate = request()->validate([
             'name'=>'required|string|max:30',
             'type'=>'required|in:public,private',
             'target'=>'nullable|integer',
             'church_id'=>'required|in:churches.id',
-            'status'=>'nullable|in:active,inactive'
+            'status'=>'nullable|in:active,inactive',
+            'parent_id'=>'nullable|integer|in:accounts.id',
         ]);
         if(!$validate){
             return response()->json(['error' => 'Validation failed'], 400);
