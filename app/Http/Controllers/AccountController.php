@@ -15,7 +15,7 @@ class AccountController extends Controller
     public function index()
     {
 
-        $church = ChurchMember::where('user_id', Auth::id())->first();
+        $church = ChurchMember::where('member_id', Auth::id())->first();
         if (Auth::user()->role == 'Superadmin') {
             $accounts = Account::all();
         } else {
