@@ -51,6 +51,9 @@ class AccountController extends Controller
         if(!$validate){
             return response()->json(['error' => 'Validation failed'], 400);
         }
+        if(Account::where('name', request('name'))->where('church_id', request('church_id'))->exists()){
+            return response()->json(['error' => 'Account already exists'], 400);
+        }
         $account = Account::create([
             'name'=>request('name'),
             'parent_id'=>request('parent_id')??null,
