@@ -125,9 +125,9 @@ class PaymentController extends Controller
         foreach (request('items') as $item) {
             Payment::create([
                 'user_id' => request('user_id'),
-                'account_id' => $item['id'],
+                'account_id' => $item[0],
                 'payment_code' => $code,
-                'amount' => $item['amount'],
+                'amount' => $item[1],
                 'payment_method' => request('method'),
                 'status' => $item['status'] ?? 'pending',
             ]);
