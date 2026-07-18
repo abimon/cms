@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use App\Http\Controllers\Controller;
-use App\Models\Church;
-use Illuminate\Http\Request;
+use App\Models\ChurchMember;
 use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
@@ -16,11 +15,11 @@ class AccountController extends Controller
     public function index()
     {
 
-        $church = Church::where('name', Auth::user()->church)->first();
+        $church = ChurchMember::where('user_id', Auth::id())->first();
         if (Auth::user()->role == 'Superadmin') {
             $accounts = Account::all();
         } else {
-            $accounts = Account::where('church_id', $church->id)->get();
+            $accounts = Account::where('church_id', $church->church_id)->get();
         }
         if (request()->is('api/*')) {
             return response()->json(['accounts' => $accounts,'church_id'=>$church->id], 200);
