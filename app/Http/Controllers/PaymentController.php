@@ -114,7 +114,7 @@ class PaymentController extends Controller
     {
         $code = strtoupper(uniqid());
         $validate = $request->validate([
-            'user_id' => 'required|in:users.id',
+            'user_id' => 'required|exists:users,id',
             'items' => 'required|array',
             'method' => 'required',
             'phone' => 'required'

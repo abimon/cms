@@ -42,11 +42,11 @@ class AccountController extends Controller
     {
         $validate = request()->validate([
             'name'=>'required|string|max:30',
-            'type'=>'required|in:public,private',
+            'type'=>'required|string',
             'target'=>'nullable|integer',
-            'church_id'=>'required|in:churches.id',
+            'church_id'=>'required|integer|exists:churches,id',
             'status'=>'nullable|in:active,inactive',
-            'parent_id'=>'nullable|integer|in:accounts.id',
+            'parent_id'=>'nullable|integer|exists:accounts,id',
         ]);
         if(!$validate){
             return response()->json(['error' => 'Validation failed'], 400);
