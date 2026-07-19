@@ -66,7 +66,7 @@ class PaymentController extends Controller
     function formatForMpesa($phoneNumber)
     {
         // 1. Remove all non-numeric characters (spaces, dashes, plus signs)
-        $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+        $cleaned = str_replace('/[^0-9]/', '', $phoneNumber);
         return ($cleaned);
     }
     function Pay($amount, $contact, $id)
