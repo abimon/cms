@@ -63,12 +63,6 @@ class PaymentController extends Controller
         $response->setContent(json_encode(["C2BPaymentConfirmationResult" => "Success"]));
         return $response;
     }
-    function formatForMpesa($phoneNumber)
-    {
-        // 1. Remove all non-numeric characters (spaces, dashes, plus signs)
-        $cleaned = str_replace('/[^0-9]/', '', $phoneNumber);
-        return ($cleaned);
-    }
     function Pay($amount, $contact, $id)
     {
         $url = (env('MPESA_ENV') == 'live') ? 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest' : 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
@@ -78,7 +72,7 @@ class PaymentController extends Controller
             'Timestamp' => date('YmdHis'),
             'TransactionType' => 'CustomerPayBillOnline',
             'Amount' => $amount,
-            'PartyA' => $this->formatForMpesa($contact),
+            'PartyA' => $contact,
             'PartyB' => env('MPESA_SHORT_CODE'),
             'PhoneNumber' => $contact,
             'CallBackURL' => 'https://churchms.apektechinc.com/api/payment/callback/' . $id,
@@ -141,8 +135,8 @@ class PaymentController extends Controller
             ]);
         }
         // format phone number to the form +254xxxxxxxxx
-        $phone = $this->formatForMpesa(request('phone'));
-        $phone = substr($phone, 0, 1) == '0' ? '254' . substr($phone, 1) : $phone;
+        $phone = request('phone');
+        $phone = (substr($phone, 0, 1)|| substr($phone, 0, 1) == '+') == '0' ? '254' . substr($phone, 1) : $phone;
         $this->Pay(request('amount'), $phone, $code);
         if (request()->is('api/*')) {
             return response()->json(['message' => 'Payment initiated successfully', 'code' => $code], 200);
