@@ -22,7 +22,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::controller(AccountController::class)->prefix('accounts/')->group(function(){
         Route::get('','index');
         Route::post('store','store');
-        Route::post('update/{id','update');
+        Route::post('update/{id}','update');
         // Route::post('delete','delete');clear
         
     });
