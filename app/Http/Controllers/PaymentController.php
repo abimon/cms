@@ -161,7 +161,7 @@ class PaymentController extends Controller
         
         $resp = $this->Pay(request('amount'), request('phone'), $code);
         if (request()->is('api/*')) {
-            return response()->json(['message' => 'Payment initiated successfully', 'code' => $code,'resp'=>$resp], 200);
+            return response()->json(['message' => 'Payment initiated successfully', 'code' => $code,'resp'=>$resp], 201);
         }
         return back()->with('success', 'Payment initiated successfully');
     }
