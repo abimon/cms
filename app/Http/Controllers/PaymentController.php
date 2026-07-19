@@ -99,7 +99,7 @@ class PaymentController extends Controller
             'PartyA' => $phone,
             'PartyB' => env('MPESA_SHORT_CODE'),
             'PhoneNumber' => $phone,
-            'CallBackURL' => 'https://churchms.apektechinc.com/api/payment/callback/' . $id,
+            'CallBackURL' => 'https://churchms.apektechinc.com/api/payments/callback/' . $id,
             'AccountReference' => 'Payment for Receipt ' . $id,
             'TransactionDesc' => 'Payment for Receipt ' . $id,
         ];

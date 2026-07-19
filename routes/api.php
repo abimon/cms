@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::controller(PaymentController::class)->prefix('payments/')->group(function(){
         Route::get('','index');
         Route::post('store','store');
-        Route::post('payment/callback/{id}','Callback');
+        Route::post('callback/{id}','Callback');
         Route::post('update', 'update');
     });
 });
