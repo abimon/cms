@@ -21,6 +21,9 @@ class AccountController extends Controller
         } else {
             $accounts = Account::where('church_id', $church->church_id)->get();
         }
+        foreach($accounts as $account){
+            $account->parentAccount = $account->parent_account->name??null;
+        }
         if (request()->is('api/*')) {
             return response()->json(['accounts' => $accounts,'church_id'=>$church->id], 200);
         }
