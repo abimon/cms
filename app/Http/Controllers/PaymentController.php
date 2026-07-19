@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Http\Controllers\Controller;
 use App\Models\Mpesa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -114,7 +115,7 @@ class PaymentController extends Controller
     {
         $code = strtoupper(uniqid());
         $validate = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id' => 'nullable|exists:users,id',
             'items' => 'required|array',
             'method' => 'required',
             'phone' => 'required'
@@ -124,7 +125,7 @@ class PaymentController extends Controller
         }
         foreach (request('items') as $item) {
             Payment::create([
-                'user_id' => request('user_id'),
+                'user_id' => request('user_id')??Auth::id(),
                 'account_id' => $item[0],
                 'payment_code' => $code,
                 'amount' => $item[1],
@@ -192,5 +193,107 @@ class PaymentController extends Controller
     public function destroy(Payment $payment)
     {
         //
+    }
+
+    function generate_token()
+    {
+        $consumer_key = 'bzRd2be82tiRTRS7TmmQmxUJj982J+Le';
+        $consumer_secret = 'yGUdLtM8ece/YNsq/ANjt+4OVaY=';
+        $data = json_encode([
+            'consumer_key' => $consumer_key,
+            'consumer_secret' => $consumer_secret
+        ]);
+        $url = 'https://pay.pesapal.com/v3/api/Auth/RequestToken';
+        $response = Http::withBody($data, 'application/json')->withHeaders(['Content-Type : application/json'])->post($url);
+        $access_token = json_decode($response);
+        return $access_token->token;
+    }
+    function generate_ipn()
+    {
+        $data = json_encode([
+            'ipn_notification_type' => 'POST',
+            'url' => 'https://sampesagroup.com/payment'
+        ]);
+        $url = 'https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN';
+        $response = Http::withToken($this->generate_token())->withBody($data, 'application/json')->withHeaders(['Content-Type : application/json'])->post($url);
+        return json_decode($response)->ipn_id;
+    }
+    function paywithPesa($amount, $account, $id)
+    {
+        $user = User::findOrFail($id);
+        $client = Payment::where([['user_id', $id], ['TransactionId', $account]])->first();
+        if (!$client) {
+            $tid = strtoupper(uniqid());
+            $data = json_encode([
+                "id" => $tid,
+                "currency" => "KES",
+                "amount" => $amount,
+                "description" => "Payment description goes here",
+                "callback_url" => "https://dev.sampesagroup.com/payment/update",
+                "redirect_mode" => "",
+                "notification_id" => $this->generate_ipn(),
+                "branch" => "Main Store",
+                "billing_address" => [
+                    "email_address" => $user->email,
+                    "phone_number" => $user->contact,
+                    "country_code" => "KE",
+                    "first_name" => $user->fname,
+                    "last_name" => $user->sname,
+                ]
+            ]);
+            $res = Http::withToken($this->generate_token())->withBody($data, 'application/json')->withHeaders(['Content-Type : application/json'])->post('https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest');
+            $response = json_decode($res);
+            $order_tracking_id = $response->order_tracking_id;
+            $merchant_reference = $response->merchant_reference;
+            $redirect_url = $response->redirect_url;
+            Payment::create([
+                'user_id' => $id,
+                'TransactionId' => $account,
+                'amount' => $amount,
+                'merchant_reference' => $response->merchant_reference,
+                'tracking_id' => $order_tracking_id,
+                'redirect_url' => $redirect_url,
+            ]);
+            return view('dashboard.pay', compact('redirect_url'));
+        } else {
+            $redirect_url = $client->redirect_url;
+            return view('dashboard.pay', compact('redirect_url'));
+        }
+    }
+    public function membership($id)
+    {
+        $amount = 5000;
+        $account = 'Membership';
+        return $this->pay(env('APP_ENV') == 'production' ? $amount : 1, $account, $id);
+    }
+    public function loan($title)
+    {
+        $amount = request('amount');
+        return $this->pay($amount, $title, Auth::user()->id);
+    }
+    function get_ipns()
+    {
+        $url = 'https://pay.pesapal.com/v3/api/URLSetup/GetIpnList';
+        $response = Http::withToken($this->generate_token())->withHeaders(['Content-Type : application/json'])->get($url);
+        return json_decode($response);
+    }
+    public function payupdate()
+    {
+        $pay = Payment::where([["tracking_id", request('OrderTrackingId')], ['merchant_reference', request('OrderMerchantReference')]])->first();
+
+        $url = 'https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=' . $pay->tracking_id;
+        $res = Http::withToken($this->generate_token())->withHeaders(['Content-Type : application/json'])->get($url);
+        $response = json_decode($res);
+        if ($response->status == '200') {
+            $pay->payment_account = $response->payment_account;
+            $pay->amount = $response->amount;
+            $pay->payment_method = $response->payment_method;
+            $pay->confirmation_code = $response->confirmation_code;
+            $pay->payment_status_description = $response->payment_status_description;
+            $pay->update();
+            // return $pay->TransactionId;
+            return redirect('/dashboard')->with('success', 'Payment made successfully.');
+        }
+        return $response;
     }
 }
