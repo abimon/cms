@@ -118,6 +118,11 @@ class PaymentController extends Controller
         } else {
             $payments = Payment::where('user_id', Auth::user()->id)->get();
         }
+        foreach($payments as $payment){
+            $payment->userUid = $payment->user->uid;
+            $payment->accountName = $payment->account->name;
+        
+        }
         if (request()->is('api/*')) {
             return response()->json(['payments' => $payments]);
         }
