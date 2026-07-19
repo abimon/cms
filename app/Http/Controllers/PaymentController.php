@@ -141,7 +141,7 @@ class PaymentController extends Controller
             'user_id' => 'nullable|exists:users,id',
             'items' => 'required|array',
             'method' => 'required',
-            'phone' => ['nullable','regex:/^(\+254|0)[1-9]\d{8}$/'],
+            'phone' => ['nullable','regex:/^(0)[1-9]\d{8}$/'],
             'amount' => 'required|numeric',
         ]);
         if (!$validate) {
@@ -157,9 +157,9 @@ class PaymentController extends Controller
                 'status' => $item['status'] ?? 'pending',
             ]);
         }
-        // format phone number to the form +254xxxxxxxxx remove all special characters and spaces
-        
-        $resp = $this->Pay(request('amount'), request('phone'), $code);
+        $phone = ltrim(request('phone'), 0);
+        $phone = '254' . $phone;
+        $resp = $this->Pay(request('amount'), $phone, $code);
         if($resp['ResponseCode'] == '0'){
 
             if (request()->is('api/*')) {
