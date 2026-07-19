@@ -88,6 +88,7 @@ class PaymentController extends Controller
     }
     function Pay($amount, $contact, $id)
     {
+        $phone = $this->formatForMpesa($contact);
         $url = (env('MPESA_ENV') == 'live') ? 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest' : 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
         $data = [
             'BusinessShortCode' => env('MPESA_SHORT_CODE'),
@@ -95,9 +96,9 @@ class PaymentController extends Controller
             'Timestamp' => date('YmdHis'),
             'TransactionType' => 'CustomerPayBillOnline',
             'Amount' => $amount,
-            'PartyA' => $this->formatForMpesa($contact),
+            'PartyA' => $phone,
             'PartyB' => env('MPESA_SHORT_CODE'),
-            'PhoneNumber' => $contact,
+            'PhoneNumber' => $phone,
             'CallBackURL' => 'https://churchms.apektechinc.com/api/payment/callback/' . $id,
             'AccountReference' => 'Payment for Receipt ' . $id,
             'TransactionDesc' => 'Payment for Receipt ' . $id,
@@ -141,27 +142,27 @@ class PaymentController extends Controller
             'user_id' => 'nullable|exists:users,id',
             'items' => 'required|array',
             'method' => 'required',
-            'phone' => ['nullable','regex:/^(0)[1-9]\d{8}$/'],
+            'phone' => ['required','regex:/^(0)[1-9]\d{8}$/'],
             'amount' => 'required|numeric',
         ]);
         if (!$validate) {
             return response()->json(['message' => 'Validation failed', 'errors' => $validate], 400);
         }
-        foreach (request('items') as $item) {
-            Payment::create([
-                'user_id' => request('user_id')??Auth::id(),
-                'account_id' => $item[0],
-                'payment_code' => $code,
-                'amount' => $item[1],
-                'payment_method' => request('method'),
-                'status' => $item['status'] ?? 'pending',
-            ]);
-        }
+        
         $phone = ltrim(request('phone'), 0);
         $phone = '254' . $phone;
         $resp = $this->Pay(request('amount'), $phone, $code);
         if($resp['ResponseCode'] == '0'){
-
+            foreach (request('items') as $item) {
+                Payment::create([
+                    'user_id' => request('user_id') ?? Auth::id(),
+                    'account_id' => $item[0],
+                    'payment_code' => $code,
+                    'amount' => $item[1],
+                    'payment_method' => request('method'),
+                    'status' => $item['status'] ?? 'pending',
+                ]);
+            }
             if (request()->is('api/*')) {
                 return response()->json(['message' => 'Payment initiated successfully', 'code' => $code, 'resp' => $resp], 201);
             }
