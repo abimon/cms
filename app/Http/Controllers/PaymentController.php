@@ -159,9 +159,9 @@ class PaymentController extends Controller
         }
         // format phone number to the form +254xxxxxxxxx remove all special characters and spaces
         
-        $this->Pay(request('amount'), request('phone'), $code);
+        $resp = $this->Pay(request('amount'), request('phone'), $code);
         if (request()->is('api/*')) {
-            return response()->json(['message' => 'Payment initiated successfully', 'code' => $code], 200);
+            return response()->json(['message' => 'Payment initiated successfully', 'code' => $code,'resp'=>$resp], 200);
         }
         return back()->with('success', 'Payment initiated successfully');
     }
