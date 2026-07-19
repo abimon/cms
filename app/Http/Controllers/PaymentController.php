@@ -63,6 +63,29 @@ class PaymentController extends Controller
         $response->setContent(json_encode(["C2BPaymentConfirmationResult" => "Success"]));
         return $response;
     }
+    function formatForMpesa($phoneNumber)
+    {
+        // 1. Remove all non-numeric characters (spaces, dashes, plus signs)
+        $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+
+        // 2. Check if it starts with 07 or 01 (Local format)
+        if (preg_replace('/^(07|01)\d{8}$/', '$1', $cleaned) && strlen($cleaned) === 10) {
+            return '254' . substr($cleaned, 1);
+        }
+
+        // 3. Check if it starts with +254 or 254 (International format)
+        if (str_starts_with($cleaned, '254') && strlen($cleaned) === 12) {
+            return $cleaned;
+        }
+
+        // 4. Check if it starts with 7 or 1 (Short format missing the leading 0)
+        if ((str_starts_with($cleaned, '7') || str_starts_with($cleaned, '1')) && strlen($cleaned) === 9) {
+            return '254' . $cleaned;
+        }
+
+        // Return false or handle invalid number error
+        return false;
+    }
     function Pay($amount, $contact, $id)
     {
         $url = (env('MPESA_ENV') == 'live') ? 'https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest' : 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
@@ -72,7 +95,7 @@ class PaymentController extends Controller
             'Timestamp' => date('YmdHis'),
             'TransactionType' => 'CustomerPayBillOnline',
             'Amount' => $amount,
-            'PartyA' => $contact,
+            'PartyA' => $this->formatForMpesa($contact),
             'PartyB' => env('MPESA_SHORT_CODE'),
             'PhoneNumber' => $contact,
             'CallBackURL' => 'https://churchms.apektechinc.com/api/payment/callback/' . $id,
@@ -118,7 +141,7 @@ class PaymentController extends Controller
             'user_id' => 'nullable|exists:users,id',
             'items' => 'required|array',
             'method' => 'required',
-            'phone' => 'nullable|regex:/^(\+254|0)[1-9]\d{8}$/',
+            'phone' => ['nullable','regex:/^(\+254|0)[1-9]\d{8}$/'],
             'amount' => 'required|numeric',
         ]);
         if (!$validate) {
@@ -134,10 +157,9 @@ class PaymentController extends Controller
                 'status' => $item['status'] ?? 'pending',
             ]);
         }
-        // format phone number to the form +254xxxxxxxxx
-        $phone = request('phone');
-        $phone = (substr($phone, 0, 1)|| substr($phone, 0, 1) == '+') == '0' ? '254' . substr($phone, 1) : $phone;
-        $this->Pay(request('amount'), $phone, $code);
+        // format phone number to the form +254xxxxxxxxx remove all special characters and spaces
+        
+        $this->Pay(request('amount'), request('phone'), $code);
         if (request()->is('api/*')) {
             return response()->json(['message' => 'Payment initiated successfully', 'code' => $code], 200);
         }
