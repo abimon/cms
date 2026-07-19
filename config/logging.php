@@ -126,6 +126,16 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+        'mpesaSuccess' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mpesaSuccess.log'),
+            'level' => 'info',
+        ],
+        'mpesaErrors' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mpesaErrors.log'),
+            'level' => 'info',
+        ],
 
     ],
 
