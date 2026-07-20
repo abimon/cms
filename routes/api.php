@@ -10,8 +10,8 @@ Route::controller(UserController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login', 'login');
     Route::post('logout', 'logout');
-    Route::post('update', 'update')->middleware('auth:sanctum');
-    Route::post('delete', 'delete');
+    Route::post('user/update', 'update')->middleware('auth:sanctum');
+    Route::post('user/delete', 'delete');
 });
 Route::controller(ChurchController::class)->group(function(){
     Route::get('churches','index');

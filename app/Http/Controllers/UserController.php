@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Church;
 use App\Models\ChurchMember;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -106,9 +107,57 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update()
     {
-        //
+        $user=User::findOrFail(request('user_id')??Auth::id());
+        $isDirty = false;
+        if(request('uid')!=null){
+            $user->uid=request('uid');
+            $isDirty=true;
+        }
+        if(request('name')!=null){
+            $user->name=request('name');
+            $isDirty=true;
+        }
+        if(request('email')!=null){
+            $user->email=request('email');
+            $isDirty=true;
+        }
+        if(request('phone')!=null){
+            $user->phone=request('phone');
+            $isDirty=true;
+        }
+        if(request('wellbeing_status')!=null){
+            $user->wellbeing_status=request('wellbeing_status');
+            $isDirty=true;
+        }
+        if(request()->hasFile('avatar')){
+            $file = request()->file('avatar');
+            $filename = time().$file->getClientOriginalExtension();
+            $file->move(public_path('avatars'), $filename);
+            $user->avatar=$filename;
+            $isDirty=true;
+        }
+        if(request('role')!=null){
+            $user->role=request('role');
+            $isDirty=true;
+        }
+        if(request('password')!=null){
+            if(Hash::check(request('password'), $user->password)){
+                return response()->json(['message' => 'New password can not be the same as the old password'], 400);
+            }
+            if(Hash::check(request('cpassword'),$user->password)){
+                $user->password=Hash::make(request('password'));
+            }else{
+                return response()->json(['message' => 'Current password is incorrect'], 400);
+            }
+        }
+        if($isDirty){
+            $user->save();
+            return response()->json(['message' => 'User updated successfully', 'user' => $user], 200);
+        }else{
+            return response()->json(['message' => 'No changes made'], 200);
+        }
     }
 
     /**
