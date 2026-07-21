@@ -25,7 +25,8 @@ class UserController extends Controller
             if(!$user || !Hash::check(request('password'), $user->password)){
                 return response()->json(['message' => 'Invalid credentials'], 401);
             }
-            return response()->json(['message' => 'User logged in successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 200);
+            $church = ChurchMember::where('member_id',$user->id)->first();
+            return response()->json(['message' => 'User logged in successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken, 'churchId' => $church->church_id], 200);
         }catch(\Exception $e){
             return response()->json(['message' => 'Error logging in user', 'error' => $e->getMessage()], 500);
         }
@@ -59,7 +60,7 @@ class UserController extends Controller
                 'member_id'=>$user->id,
                 'church_id'=>$church->id
             ]);
-            return response()->json(['message' => 'User created successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken], 201);
+            return response()->json(['message' => 'User created successfully', 'user' => $user,'token'=>$user->createToken('auth_token')->plainTextToken,'churchId'=>$church->id], 201);
         }catch(\Exception $e){
             return response()->json(['message' => 'Error creating user', 'error' => $e->getMessage()], 500);
         }
