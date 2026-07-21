@@ -13,7 +13,7 @@ class PosterController extends Controller
      */
     public function index()
     {
-        return response()->json(['posters'=>Poster::where('church_id',request('church_id'))], 200);
+        return response()->json(['posters'=>Poster::where('church_id',request('church_id'))->get()], 200);
     }
 
     /**
