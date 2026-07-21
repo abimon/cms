@@ -30,10 +30,11 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::controller(PaymentController::class)->prefix('payments/')->group(function(){
         Route::get('','index');
         Route::post('store','store');
-        Route::post('callback/{id}','Callback');
         Route::post('update', 'update');
     });
     Route::controller(HomeController::class)->group(function(){
         Route::get('/fetchAccountingData', 'fetchAccountingData');
     });
 });
+
+Route::post('/payments/callback/{id}', [PaymentController::class,'Callback']);
